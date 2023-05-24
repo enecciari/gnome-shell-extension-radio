@@ -9,12 +9,22 @@ const Search = imports.ui.search;
 const Io = Extension.imports.io;
 const MyE = Extension.imports.radioMenu;
 const Main = imports.ui.main;
+const ParentalControlsManager = imports.misc.parentalControlsManager;
 
 var radioSearchProvider;
+var ssApp;
 
 function enableProvider() {
     if (!radioSearchProvider) {
         radioSearchProvider = new RadioSearchProvider();
+	if(!ssApp) {
+		var p = ParentalControlsManager.getDefault();
+		ssApp = p.shouldShowApp;
+
+		p.shouldShowApp = (appInfo) => {
+			return true;
+		}
+	}
         Main.overview._overview.controls._searchController._searchResults._registerProvider(radioSearchProvider);
     }
 }
