@@ -12,20 +12,14 @@ const Main = imports.ui.main;
 const ParentalControlsManager = imports.misc.parentalControlsManager;
 
 var radioSearchProvider;
-var ssApp;
 
 function enableProvider() {
     if (!radioSearchProvider) {
         radioSearchProvider = new RadioSearchProvider();
-	if(!ssApp) {
 		var p = ParentalControlsManager.getDefault();
-		ssApp = p.shouldShowApp;
-
-		p.shouldShowApp = (appInfo) => {
-			return true;
-		}
-	}
+        p._disabled = true;
         Main.overview._overview.controls._searchController._searchResults._registerProvider(radioSearchProvider);
+        p._disabled = false;
     }
 }
 
@@ -46,6 +40,9 @@ var RadioSearchProvider = class RadioSearchProvider {
         this.appInfo.get_icon = () => {
             return Gio.icon_new_for_string(Extension.path + '/icons/gser-icon-stopped-symbolic.svg');
         };
+        this.appInfo.get_uuid = () => {
+            return Extension.metadata.uuid;
+        }
     }
 
     getInitialResultSet(terms, cancellable = null) {
