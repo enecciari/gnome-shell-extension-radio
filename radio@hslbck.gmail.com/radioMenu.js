@@ -84,6 +84,7 @@ let RadioMenuButton = GObject.registerClass(
 
             this.iconStopped = Gio.icon_new_for_string(extensionObject.path + '/icons/gser-icon-stopped-symbolic.svg');
             this.iconPlaying = Gio.icon_new_for_string(extensionObject.path + '/icons/gser-icon-playing-symbolic.svg');
+            this.iconMusic = Gio.icon_new_for_string(extensionObject.path + '/icons/music-note-symbolic.svg');
 
             // Icon for the Panel
             this.radioIcon = new St.Icon({
@@ -405,7 +406,8 @@ let RadioMenuButton = GObject.registerClass(
         _addToFavourites(cha, menuItemOffset) {
             let contains = this._containsChannel(cha);
             if (contains) {
-                let item = new PopupMenu.PopupImageMenuItem(cha.getName(), 'emblem-music-symbolic');
+                
+                let item = new PopupMenu.PopupImageMenuItem(cha.getName(), this.iconMusic);
                 item.set_name(cha.getId());
                 item.connect('activate', () => {
                     this._changeChannel(cha);
