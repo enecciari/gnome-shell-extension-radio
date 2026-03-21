@@ -100,13 +100,14 @@ let RadioMenuButton = GObject.registerClass(
             this.channelList = Io.read(this._extensionObject.path);
             this.chas = this.channelList.channels;
             this.lastPlayed = this.channelList.lastplayed;
-            let encoding = this.lastPlayed.hasOwnProperty('encoding') ? this.lastPlayed.encoding : null;
-            let lastPlayedId = this.lastPlayed.hasOwnProperty('id') ? this.lastPlayed.id : null;
+            if(this.lastPlayed) {
+                let encoding = this.lastPlayed.hasOwnProperty('encoding') ? this.lastPlayed.encoding : null;
+                let lastPlayedId = this.lastPlayed.hasOwnProperty('id') ? this.lastPlayed.id : null;
 
-            // init last played channel
-            // ToDo: hard to match
-            this.lastPlayedChannel = new Channel.Channel(lastPlayedId, this.lastPlayed.name, this.lastPlayed.address, false, encoding);
-
+                // init last played channel
+                // ToDo: hard to match
+                this.lastPlayedChannel = new Channel.Channel(lastPlayedId, this.lastPlayed.name, this.lastPlayed.address, false, encoding, this.lastPlayed?.favicon);
+            }
             // init player
             this.player = null;
 
@@ -114,12 +115,15 @@ let RadioMenuButton = GObject.registerClass(
             this.stopIconSymbolic = 'media-playback-stop-symbolic';
 
             // Play - Stop Button
-            this.playMenuItem = new PopupMenu.PopupImageMenuItem(this.lastPlayedChannel.getName(), this.playIconSymbolic, { style_class: 'box-width' });
+            let channelName = "";
+            if(this.lastPlayedChannel) {
+                channelName = this.lastPlayedChannel.getName();
+            }
+            this.playMenuItem = new PopupMenu.PopupImageMenuItem(channelName, this.playIconSymbolic, { style_class: 'box-width' });
             this.playMenuItem.connect('activate', () => {
                 this._onPlayButtonClicked();
             });
             this.menu.addMenuItem(this.playMenuItem);
-
             // PopupSeparator
             let separator1 = new PopupMenu.PopupSeparatorMenuItem();
             this.menu.addMenuItem(separator1);
@@ -179,7 +183,7 @@ let RadioMenuButton = GObject.registerClass(
                 let settingValue = JSON.parse(this._settings.get_string(SETTING_STATION_ACTION));
                 let station = settingValue.station;
                 let actionValue = settingValue.action;
-                let cha = new Channel.Channel(station.id, station.name, station.address, station.favourite, station.encoding);
+                let cha = new Channel.Channel(station.id, station.name, station.address, station.favourite, station.encodingi, station.favicon);
                 let menuItemOffset = this._settings.get_boolean(SETTING_SHOW_VOLUME_ADJUSTMENT_SLIDER) ? 4 : 2;
 
                 switch (actionValue) {
@@ -333,7 +337,7 @@ let RadioMenuButton = GObject.registerClass(
             this.radioIcon.set_gicon(this.iconStopped);
             this.isPlaying = false;
             this.playMenuItem.setIcon(this.playIconSymbolic);
-            this.playMenuItem.label.set_text(this.lastPlayedChannel.getName());
+            this.playMenuItem.label.set_text(this.lastPlayedChannel?.getName() ?? "");
         }
 
         // change channel to previous on the list
@@ -395,7 +399,7 @@ let RadioMenuButton = GObject.registerClass(
             for (var i in chas) {
                 let encoding = chas[i].hasOwnProperty('encoding') ? chas[i].encoding : null;
                 let id = chas[i].hasOwnProperty('id') ? chas[i].id : null;
-                let channel = new Channel.Channel(id, chas[i].name, chas[i].address, chas[i].favourite, encoding);
+                let channel = new Channel.Channel(id, chas[i].name, chas[i].address, chas[i].favourite, encoding, chas[i]?.favicon);
                 this.helperChannelList[i] = channel;
                 if (chas[i].favourite) {
                     this._addToFavourites(channel, 0);
@@ -407,7 +411,14 @@ let RadioMenuButton = GObject.registerClass(
             let contains = this._containsChannel(cha);
             if (contains) {
                 
-                let item = new PopupMenu.PopupImageMenuItem(cha.getName(), this.iconMusic);
+                let icon = this.iconMusic;
+                if(cha?.getFavIcon()) {
+                    const img = Gio.File.new_for_uri(cha?.getFavIcon());
+                    if(img) {
+                        icon = new Gio.FileIcon({ file: img});
+                    }
+                }
+                let item = new PopupMenu.PopupImageMenuItem(cha.getName(), icon);
                 item.set_name(cha.getId());
                 item.connect('activate', () => {
                     this._changeChannel(cha);
