@@ -502,19 +502,22 @@ let RadioMenuButton = GObject.registerClass(
 
         // create a new Channel
         _addChannel(cha) {
+            this._deleteChannel(cha, 0);
             this.helperChannelList.push(cha);
             Io.write(this.helperChannelList, this.lastPlayedChannel);
         }
 
         // Delete a Channel
-        _deleteChannel(cha) {
+        _deleteChannel(cha, save = 1) {
             if (cha.getFavourite()) {
                 this._removeFromFavourites(cha);
             }
             for (var i in this.helperChannelList) {
                 if (this.helperChannelList[i].getId() === cha.getId()) {
                     this.helperChannelList.splice(i, 1); // remove 1 element from the given index
-                    Io.write(this.helperChannelList, this.lastPlayedChannel);
+                    if(save) {
+                        Io.write(this.helperChannelList, this.lastPlayedChannel);
+                    }
                 }
             }
         }
